@@ -1,5 +1,5 @@
 #!/bin/bash
-# Xboard-Node Hidden Process Instance Uninstaller for Debian/Ubuntu
+# Xboard-Node Complete Hide Instance Uninstaller for Debian/Ubuntu
 #
 # Usage:
 #   curl -fsSL URL | sudo bash -s -- --name INSTANCE
@@ -23,13 +23,12 @@ fi
 
 # Parse arguments
 INSTANCE_NAME=""
-WRAPPER_NAME=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --name) INSTANCE_NAME="$2"; shift 2;;
         --help) cat <<'HELP'
-Xboard-Node Hidden Process Instance Uninstaller
+Xboard-Node Complete Hide Instance Uninstaller
 
 Usage:
   curl -fsSL URL | sudo bash -s -- --name INSTANCE
@@ -55,40 +54,38 @@ if [ -z "$INSTANCE_NAME" ]; then
 fi
 
 SERVICE_NAME="xboard-node-${INSTANCE_NAME}"
-CONFIG_DIR="/etc/xboard-node-${INSTANCE_NAME}"
-LOG_DIR="/var/log/xboard-node"
-BINARY_PATH="/usr/local/bin/xboard-node"
-WRAPPER_FILE="${CONFIG_DIR}/wrapper"
+HIDDEN_CONFIG_DIR="/var/run/.system-cache/${INSTANCE_NAME}"
+BINARY_PATH="/usr/local/bin/kernel-update"
 
 echo ""
 echo "=============================================="
-echo "  Xboard-Node Hidden Process Uninstaller"
+echo "  Xboard-Node Complete Hide Uninstaller"
 echo "=============================================="
 echo ""
 log_info "Uninstalling instance: ${INSTANCE_NAME}"
 echo ""
 
-# Check if instance exists
-if [ ! -d "$CONFIG_DIR" ]; then
+# Check if instance exists (hidden location)
+if [ ! -d "$HIDDEN_CONFIG_DIR" ]; then
     log_error "Instance '${INSTANCE_NAME}' not found!"
     log_info "Available instances:"
-    ls -d /etc/xboard-node-* 2>/dev/null | while read dir; do
-        basename "$dir" | sed 's/^xboard-node-//'
+    ls -d /var/run/.system-cache/* 2>/dev/null | while read dir; do
+        basename "$dir"
     done
     exit 1
 fi
 
 # Read wrapper name
-if [ -f "$WRAPPER_FILE" ]; then
-    WRAPPER_NAME=$(cat "$WRAPPER_FILE")
+WRAPPER_NAME=""
+if [ -f "$HIDDEN_CONFIG_DIR/wrapper" ]; then
+    WRAPPER_NAME=$(cat "$HIDDEN_CONFIG_DIR/wrapper")
 fi
 
 # Confirm uninstallation
 log_warn "This will remove:"
 log_warn "  - Service: ${SERVICE_NAME}"
-log_warn "  - Config: ${CONFIG_DIR}"
-log_warn "  - Logs: ${LOG_DIR}/${INSTANCE_NAME}.log"
-[ -n "$WRAPPER_NAME" ] && log_warn "  - Wrapper: /usr/local/bin/${WRAPPER_NAME}"
+log_warn "  - Config: ${HIDDEN_CONFIG_DIR}"
+log_warn "  - Wrapper: /usr/local/bin/${WRAPPER_NAME}"
 echo ""
 
 printf "Are you sure? (y/N): "
@@ -112,15 +109,14 @@ fi
 # Remove files
 log_info "Removing files..."
 rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
-rm -rf "$CONFIG_DIR"
-rm -f "${LOG_DIR}/${INSTANCE_NAME}.log"
+rm -rf "$HIDDEN_CONFIG_DIR"
 systemctl daemon-reload
 
 # Check if any other instances exist
-if [ ! "$(ls -A /etc/xboard-node-* 2>/dev/null)" ]; then
-    log_info "No more instances, removing binary and manager..."
+if [ ! "$(ls -A /var/run/.system-cache 2>/dev/null)" ]; then
+    log_info "No more instances, removing binary..."
     rm -f "$BINARY_PATH"
-    rm -f /usr/local/bin/service-manager
+    rm -f /usr/local/bin/crond-worker /usr/local/bin/ssh-agent /usr/local/bin/system-logger /usr/local/bin/cache-manager /usr/local/bin/sync-daemon 2>/dev/null
 fi
 
 echo ""

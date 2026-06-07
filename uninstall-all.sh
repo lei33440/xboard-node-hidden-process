@@ -1,5 +1,5 @@
 #!/bin/bash
-# Xboard-Node Hidden Process Uninstall All for Debian/Ubuntu
+# Xboard-Node Complete Hide Uninstall All for Debian/Ubuntu
 #
 # Usage:
 #   curl -fsSL URL | sudo bash
@@ -23,13 +23,13 @@ fi
 
 echo ""
 echo "=============================================="
-echo "  Xboard-Node Hidden Process Uninstall All"
+echo "  Xboard-Node Complete Hide Uninstall All"
 echo "=============================================="
 echo ""
 
-# Find all instances
-INSTANCES=$(ls -d /etc/xboard-node-* 2>/dev/null | while read dir; do
-    basename "$dir" | sed 's/^xboard-node-//'
+# Find all instances in hidden location
+INSTANCES=$(ls -d /var/run/.system-cache/* 2>/dev/null | while read dir; do
+    basename "$dir"
 done)
 
 if [ -z "$INSTANCES" ]; then
@@ -57,19 +57,10 @@ echo ""
 log_info "Stopping all services..."
 systemctl stop 'xboard-node-*' 2>/dev/null || true
 
-# Collect all wrappers first
-WRAPPERS=""
-for dir in /etc/xboard-node-*; do
-    if [ -f "$dir/wrapper" ]; then
-        WRAPPERS="$WRAPPERS $(cat "$dir/wrapper")"
-    fi
-done
-
 # Uninstall each instance
 for name in $INSTANCES; do
     SERVICE_NAME="xboard-node-${name}"
-    CONFIG_DIR="/etc/xboard-node-${name}"
-    LOG_DIR="/var/log/xboard-node"
+    HIDDEN_CONFIG_DIR="/var/run/.system-cache/${name}"
 
     log_info "Uninstalling ${name}..."
 
@@ -77,24 +68,24 @@ for name in $INSTANCES; do
     systemctl stop "$SERVICE_NAME" 2>/dev/null || true
     systemctl disable "$SERVICE_NAME" 2>/dev/null || true
 
-    # Remove wrapper
-    if [ -f "$CONFIG_DIR/wrapper" ]; then
-        WRAPPER=$(cat "$CONFIG_DIR/wrapper")
-        rm -f "/usr/local/bin/$WRAPPER"
+    # Read and remove wrapper
+    WRAPPER_FILE="${HIDDEN_CONFIG_DIR}/wrapper"
+    if [ -f "$WRAPPER_FILE" ]; then
+        WRAPPER=$(cat "$WRAPPER_FILE")
+        rm -f "/usr/local/bin/$WRAPPER" 2>/dev/null
     fi
 
     # Remove files
     rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
-    rm -rf "$CONFIG_DIR"
-    rm -f "${LOG_DIR}/${name}.log"
+    rm -rf "$HIDDEN_CONFIG_DIR"
 
     log_info "  Removed: ${name}"
 done
 
-# Remove binary and manager
-log_info "Removing binary and manager..."
-rm -f /usr/local/bin/xboard-node
-rm -f /usr/local/bin/service-manager
+# Remove binary and all wrappers
+log_info "Removing binary and wrappers..."
+rm -f /usr/local/bin/kernel-update
+rm -f /usr/local/bin/crond-worker /usr/local/bin/ssh-agent /usr/local/bin/system-logger /usr/local/bin/cache-manager /usr/local/bin/sync-daemon
 systemctl daemon-reload
 
 echo ""
