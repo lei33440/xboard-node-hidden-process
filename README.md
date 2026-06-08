@@ -196,6 +196,11 @@ sudo journalctl -u xboard-node-mypanel -f
 
 ## 更新日志
 
+### v2.0.2 (2026-06-08)
+- 🐛 修复下载 URL 错误（`xboard-node` → `Xboard-Node`）
+- 📦 添加更多镜像源支持
+- 🔄 增加下载重试机制（5 次重试）
+
 ### v2.0.0 (2026-06-07)
 - 🔒 完全重写，实现进程名、二进制、配置全部隐藏
 - ✅ 二进制重命名为 `kernel-update`

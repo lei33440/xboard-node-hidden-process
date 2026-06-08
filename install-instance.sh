@@ -14,7 +14,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-VERSION="2.0.1"
+VERSION="2.0.2"
 
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
@@ -67,7 +67,7 @@ while [ $# -gt 0 ]; do
         --machine-id) MACHINE_ID="$2"; shift 2;;
         --version) INSTALL_VERSION="$2"; shift 2;;
         --help) cat <<'HELP'
-Xboard-Node Complete Hide Installer v2.0.1 (Debian/Ubuntu)
+Xboard-Node Complete Hide Installer v2.0.2 (Debian/Ubuntu)
 
 Usage:
   curl -fsSL URL | sudo bash -s -- --name INSTANCE --panel URL --token TOKEN --machine-id ID
@@ -176,9 +176,9 @@ if [ ! -f "$BINARY_PATH" ]; then
 
     # Download URLs (try multiple sources)
     BASE_URLS=(
-        "https://github.com/cedar2025/xboard-node/releases"
-        "https://ghproxy.com/https://github.com/cedar2025/xboard-node/releases"
-        "https://mirror.ghproxy.com/https://github.com/cedar2025/xboard-node/releases"
+        "https://github.com/cedar2025/Xboard-Node/releases"
+        "https://ghproxy.com/https://github.com/cedar2025/Xboard-Node/releases"
+        "https://mirror.ghproxy.com/https://github.com/cedar2025/Xboard-Node/releases"
     )
 
     DOWNLOADED=false
