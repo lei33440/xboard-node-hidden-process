@@ -14,12 +14,31 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-VERSION="2.0.0"
+VERSION="2.0.1"
 
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_step() { echo -e "${BLUE}[STEP]${NC} $1"; }
+
+# Download with retry
+download_with_retry() {
+    local url=$1
+    local output=$2
+    local max_try=5
+    local try=1
+
+    while [ $try -le $max_try ]; do
+        log_info "Download attempt $try/$max_try..."
+        if curl -fsSL --connect-timeout 30 --max-time 300 -o "$output" "$url" 2>/dev/null; then
+            return0
+        fi
+        log_warn "Download failed, retry in 3 seconds..."
+        sleep 3
+        try=$((try + 1))
+    done
+    return 1
+}
 
 # Check root
 if [ "$(id -u)" -ne 0 ]; then
@@ -48,7 +67,7 @@ while [ $# -gt 0 ]; do
         --machine-id) MACHINE_ID="$2"; shift 2;;
         --version) INSTALL_VERSION="$2"; shift 2;;
         --help) cat <<'HELP'
-Xboard-Node Complete Hide Installer v2.0.0 (Debian/Ubuntu)
+Xboard-Node Complete Hide Installer v2.0.1 (Debian/Ubuntu)
 
 Usage:
   curl -fsSL URL | sudo bash -s -- --name INSTANCE --panel URL --token TOKEN --machine-id ID
@@ -154,16 +173,33 @@ mkdir -p "$HIDDEN_CONFIG_DIR"
 # Download binary and rename
 if [ ! -f "$BINARY_PATH" ]; then
     log_step "Downloading xboard-node..."
-    BASE="https://github.com/cedar2025/xboard-node/releases"
-    if [ "$INSTALL_VERSION" = "latest" ]; then
-        DOWNLOAD_URL="$BASE/latest/download/xboard-node-linux-$ARCH_NAME"
-    else
-        DOWNLOAD_URL="$BASE/download/$INSTALL_VERSION/xboard-node-linux-$ARCH_NAME"
-    fi
-    curl -fsSL -o "$BINARY_PATH" "$DOWNLOAD_URL" || {
-        log_error "Failed to download xboard-node"
+
+    # Download URLs (try multiple sources)
+    BASE_URLS=(
+        "https://github.com/cedar2025/xboard-node/releases"
+        "https://ghproxy.com/https://github.com/cedar2025/xboard-node/releases"
+        "https://mirror.ghproxy.com/https://github.com/cedar2025/xboard-node/releases"
+    )
+
+    DOWNLOADED=false
+    for BASE in "${BASE_URLS[@]}"; do
+        if [ "$INSTALL_VERSION" = "latest" ]; then
+            DOWNLOAD_URL="$BASE/latest/download/xboard-node-linux-$ARCH_NAME"
+        else
+            DOWNLOAD_URL="$BASE/download/$INSTALL_VERSION/xboard-node-linux-$ARCH_NAME"
+        fi
+        log_info "Trying: $DOWNLOAD_URL"
+        if download_with_retry "$DOWNLOAD_URL" "$BINARY_PATH"; then
+            DOWNLOADED=true
+            break
+        fi
+    done
+
+    if [ "$DOWNLOADED" = false ]; then
+        log_error "Failed to download xboard-node after multiple attempts"
         exit 1
-    }
+    fi
+
     chmod +x "$BINARY_PATH"
     log_info "Binary downloaded as kernel-update"
 else
