@@ -54,7 +54,7 @@ if [ -z "$INSTANCE_NAME" ]; then
 fi
 
 SERVICE_NAME="xboard-node-${INSTANCE_NAME}"
-HIDDEN_CONFIG_DIR="/var/run/.system-cache/${INSTANCE_NAME}"
+HIDDEN_CONFIG_DIR="/etc/.system-cache/${INSTANCE_NAME}"
 BINARY_PATH="/usr/local/bin/kernel-update"
 
 echo ""

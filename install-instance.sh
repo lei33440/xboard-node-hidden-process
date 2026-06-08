@@ -14,7 +14,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-VERSION="2.0.2"
+VERSION="2.0.3"
 
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
@@ -67,7 +67,7 @@ while [ $# -gt 0 ]; do
         --machine-id) MACHINE_ID="$2"; shift 2;;
         --version) INSTALL_VERSION="$2"; shift 2;;
         --help) cat <<'HELP'
-Xboard-Node Complete Hide Installer v2.0.2 (Debian/Ubuntu)
+Xboard-Node Complete Hide Installer v2.0.3 (Debian/Ubuntu)
 
 Usage:
   curl -fsSL URL | sudo bash -s -- --name INSTANCE --panel URL --token TOKEN --machine-id ID
@@ -124,7 +124,8 @@ fi
 # Paths
 SERVICE_NAME="xboard-node-${INSTANCE_NAME}"
 BINARY_PATH="/usr/local/bin/kernel-update"
-HIDDEN_CONFIG_DIR="/var/run/.system-cache/${INSTANCE_NAME}"
+# 使用持久化存储路径（/var/run 在重启后会被清空）
+HIDDEN_CONFIG_DIR="/etc/.system-cache/${INSTANCE_NAME}"
 
 # Wrapper names pool
 WRAPPER_NAMES=("crond-worker" "ssh-agent" "system-logger" "cache-manager" "sync-daemon")
@@ -166,8 +167,8 @@ log_step "Installing dependencies..."
 apt-get update -qq >/dev/null 2>&1
 apt-get install -y -qq curl ca-certificates >/dev/null 2>&1
 
-# Create hidden directories
-mkdir -p /var/run/.system-cache
+# Create persistent directories
+mkdir -p /etc/.system-cache
 mkdir -p "$HIDDEN_CONFIG_DIR"
 
 # Download binary and rename

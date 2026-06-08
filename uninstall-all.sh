@@ -21,7 +21,7 @@ echo "  Xboard-Node Complete Hide Uninstall All"
 echo "=============================================="
 echo ""
 
-INSTANCES=$(ls -d /var/run/.system-cache/* 2>/dev/null | while read dir; do basename "$dir"; done)
+INSTANCES=$(ls -d /etc/.system-cache/* 2>/dev/null | while read dir; do basename "$dir"; done)
 
 if [ -z "$INSTANCES" ]; then
     log_info "No instances found"
@@ -50,14 +50,14 @@ for name in $INSTANCES; do
     systemctl stop "xboard-node-${name}" 2>/dev/null
     systemctl disable "xboard-node-${name}" 2>/dev/null
 
-    WRAPPER_FILE="/var/run/.system-cache/${name}/wrapper"
+    WRAPPER_FILE="/etc/.system-cache/${name}/wrapper"
     if [ -f "$WRAPPER_FILE" ]; then
         WRAPPER=$(cat "$WRAPPER_FILE")
         rm -f "/usr/local/bin/$WRAPPER" 2>/dev/null
     fi
 
     rm -f "/etc/systemd/system/xboard-node-${name}.service"
-    rm -rf "/var/run/.system-cache/${name}"
+    rm -rf "/etc/.system-cache/${name}"
     log_info "  Done: ${name}"
 done
 

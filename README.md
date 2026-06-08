@@ -14,7 +14,7 @@
 
 - 🔒 **进程名隐藏** - 显示为 `crond-worker`/`ssh-agent` 等常见系统进程名
 - 🔒 **二进制隐藏** - 重命名为 `kernel-update`
-- 🔒 **配置隐藏** - 配置存储在 `/var/run/.system-cache/` 隐藏目录
+- 🔒 **配置隐藏** - 配置存储在 `/etc/.system-cache/` 隐藏目录（持久化存储）
 - 🔒 **服务描述隐藏** - systemd 服务显示为 "System Service"
 - ✅ **多面板支持** - 一台服务器对接多个不同面板
 - ✅ **独立实例** - 每个实例独立运行，互不影响
@@ -41,7 +41,7 @@ $ ps -ef | grep xboard
 
 ```bash
 $ ps -ef | grep -E "crond-worker|ssh-agent"
-root  1234  ... crond-worker -c /var/run/.system-cache/mypanel/config.yml
+root  1234  ... crond-worker -c /etc/.system-cache/mypanel/config.yml
 ```
 
 看起来像普通的系统进程！
@@ -90,7 +90,7 @@ curl -fsSL https://raw.githubusercontent.com/lei33440/xboard-node-hidden-process
 
 1. **二进制重命名**: `xboard-node` → `kernel-update`
 2. **进程名伪装**: 使用 `exec -a` 将进程名改为 `crond-worker`/`ssh-agent` 等
-3. **配置隐藏**: 配置存储在 `/var/run/.system-cache/{实例名}/`
+3. **配置隐藏**: 配置存储在 `/etc/.system-cache/{实例名}/`（持久化存储，重启后不丢失）
 4. **日志隐藏**: systemd 服务输出重定向到 null
 
 ### 隐藏内容
@@ -99,7 +99,7 @@ curl -fsSL https://raw.githubusercontent.com/lei33440/xboard-node-hidden-process
 |--------|--------|
 | 进程名 `xboard-node` | `crond-worker` / `ssh-agent` |
 | 二进制 `/usr/local/bin/xboard-node` | `/usr/local/bin/kernel-update` |
-| 配置 `/etc/xboard-node-{name}` | `/var/run/.system-cache/{name}` |
+| 配置 `/etc/xboard-node-{name}` | `/etc/.system-cache/{name}` |
 | systemd 描述 | `System Service` |
 
 ## 实例管理
@@ -151,7 +151,7 @@ curl -fsSL https://raw.githubusercontent.com/lei33440/xboard-node-hidden-process
 | 文件 | 路径 |
 |------|------|
 | 二进制 | `/usr/local/bin/kernel-update` |
-| 实例配置 | `/var/run/.system-cache/{实例名}/config.yml` |
+| 实例配置 | `/etc/.system-cache/{实例名}/config.yml` |
 | 包装脚本 | `/usr/local/bin/{crond-worker|ssh-agent|...}` |
 | systemd 服务 | `/etc/systemd/system/xboard-node-{实例名}.service` |
 
@@ -181,7 +181,7 @@ A: 理论上没有限制，但受服务器性能和端口数量限制。建议�
 A:
 ```bash
 # 备份所有实例配置
-sudo tar -czf hidden-backup.tar.gz /var/run/.system-cache/
+sudo tar -czf hidden-backup.tar.gz /etc/.system-cache/
 
 # 恢复备份
 sudo tar -xzf hidden-backup.tar.gz -C /
@@ -196,6 +196,10 @@ sudo journalctl -u xboard-node-mypanel -f
 
 ## 更新日志
 
+### v2.0.3 (2026-06-08)
+- 🐛 修复配置目录持久化问题（`/var/run/` → `/etc/`）
+- 💾 配置存储在 `/etc/.system-cache/`，服务器重启后不丢失
+
 ### v2.0.2 (2026-06-08)
 - 🐛 修复下载 URL 错误（`xboard-node` → `Xboard-Node`）
 - 📦 添加更多镜像源支持
@@ -204,7 +208,7 @@ sudo journalctl -u xboard-node-mypanel -f
 ### v2.0.0 (2026-06-07)
 - 🔒 完全重写，实现进程名、二进制、配置全部隐藏
 - ✅ 二进制重命名为 `kernel-update`
-- ✅ 配置移动到 `/var/run/.system-cache/` 隐藏目录
+- ✅ 配置移动到 `/etc/.system-cache/` 隐藏目录（持久化存储）
 - ✅ 进程名伪装为 `crond-worker`/`ssh-agent` 等
 - ✅ 支持多面板/多实例
 - ✅ 独立 systemd 服务管理
