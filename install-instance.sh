@@ -31,7 +31,7 @@ download_with_retry() {
     while [ $try -le $max_try ]; do
         log_info "Download attempt $try/$max_try..."
         if curl -fsSL --connect-timeout 30 --max-time 300 -o "$output" "$url" 2>/dev/null; then
-            return0
+            return 0
         fi
         log_warn "Download failed, retry in 3 seconds..."
         sleep 3
